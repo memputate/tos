@@ -1,0 +1,14 @@
+def fastMA1 = MovAvgExponential(close, 8);
+def slowMA1 = MovAvgExponential(close, 89);
+def macd1 = fastMA1 - slowMA1;
+def signal1 = MovAvgExponential(macd1, 89);
+def hist1 = macd1 - signal1;
+
+def FastMA2 = MovAvgExponential(close, 8);
+def slowMA2 = MovAvgExponential(close, 144);
+def macd2 = fastMA2 - slowMA2;
+def signal2 = MovAvgExponential(macd2, 144);
+def hist2 = macd2 - signal2;
+
+plot waveb2 = hist1;
+plot waveb1 = hist2;
