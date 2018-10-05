@@ -8,6 +8,6 @@ input DIMinusThreshold = 8;
 
 def dmi = reference DMI(length = length);
 
-addOrder(OrderType.BUY_TO_OPEN, dmi()."DI+" crosses below DIPlusThreshold, tickcolor = GetColor(0), arrowcolor = GetColor(0), name = "DI+ Below Threshold" );
+addOrder(OrderType.BUY_TO_OPEN, dmi()."DI+" crosses below DIPlusThreshold and dmi()."DI-" crosses below dmi()."ADX", tickcolor = GetColor(0), arrowcolor = GetColor(0), name = "DI+ Below Threshold" );
 
-addOrder(OrderType.SELL_TO_OPEN, dmi()."DI-" crosses below DIMinusThreshold, tickcolor = GetColor(2), arrowcolor = GetColor(2), name = "DI- Below Threshold" );
+addOrder(OrderType.SELL_TO_OPEN, dmi()."DI-" crosses below DIMinusThreshold and dmi()."DI+" crosses above dmi()."ADX", tickcolor = GetColor(2), arrowcolor = GetColor(2), name = "DI- Below Threshold" );
