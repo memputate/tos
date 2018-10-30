@@ -1,0 +1,52 @@
+#
+# Weis Wave
+#
+ 
+#Note: The Weis Wave indicator shows price waves associated with the Weis Wave Volume lower indicator.
+#Note: The reversalAmount: Indicate the minimum amount price must reverse before an inflection point can be formed. This value should be set the same on the lower Weis Wave Volume indicator.
+ 
+declare upper;
+ 
+input price = hlc3;
+input reversalAmount = 1.0;
+input reversalMode = {default price, percent};
+input displayMode = {default volume, barNumber, barTotal, none};
+ 
+def mode = if  reversalMode ==  reversalMode.price then ZigZagTrendSign(price = price, reversalAmount=reversalAmount) else ZigZagTrendPercent(price = price, reversalAmount=reversalAmount);
+def inflection = if reversalMode == reversalMode.price then if !isNan(ZigZagSign(price = price, reversalAmount=reversalAmount)) then 1 else 0 else if !isNan(ZigZagPercent(price = price, reversalAmount=reversalAmount)) then 1 else 0;
+rec trend = if inflection==1 and mode ==-1 then 1 else if inflection==1 and mode==1 then -1 else trend[1];
+ 
+plot wave =  if  reversalMode ==  reversalMode.price then ZigZagSign(price = price, reversalAmount=reversalAmount) else ZigZagPercent(price = price, reversalAmount=reversalAmount);
+wave.EnableApproximation();
+wave.AssignValueColor(if trend[1] == 1 then color.green else color.red);
+wave.SetLineWeight(3);
+ 
+rec upWaveVolume = if inflection == 1 and trend == 1 and close > open then volume else if inflection == 1 and trend == 1 and close <= open then 0 else if trend == 1 or (inflection == 1 and trend == -1 and close >= open) then upWaveVolume[1] + volume else 0;
+rec downWaveVolume = if inflection == 1 and trend == -1  and close < open then volume else if inflection == 1 and trend == -1 and close >= open then 0 else if trend == -1 or (inflection == 1 and trend == 1 and close <= open) then downWaveVolume[1] + volume else 0;
+ 
+rec barsUp = if inflection == 1 and trend == 1  and close > open then 1 else if inflection == 1 and trend == 1 and close <= open then 0 else if trend == 1 or (inflection == 1 and trend == -1 and close >= open) then barsUp[1] + 1 else 0;
+rec barsDown =  if inflection == 1 and trend == -1  and close < open then 1 else if inflection == 1 and trend == -1 and close >= open then 0 else if trend == -1 or (inflection == 1 and trend == 1 and close <= open) then barsDown[1] + 1 else 0;
+ 
+plot uCount = if (displayMode == displayMode.barNumber and barsUp) then barsUp else double.nan;
+uCount.SetPaintingStrategy(paintingStrategy.VALUES_BELOW);
+uCount.SetDefaultColor(color.dark_green);
+ 
+plot dCount = if (displayMode == displayMode.barNumber and barsDown) then barsDown else double.nan;
+dCount.SetPaintingStrategy(paintingStrategy.VALUES_ABOVE);
+dCount.SetDefaultColor(color.red);
+ 
+plot uCountTot =  if (displayMode == displayMode.barTotal and barsDown == 1 and barsUp==0) then barsUp[1] else double.nan;
+uCountTot.SetPaintingStrategy(paintingStrategy.VALUES_ABOVE);
+uCountTot.SetDefaultColor(color.dark_green);
+ 
+plot dCountTot = if (displayMode == displayMode.barTotal and barsDown==0 and barsUp==1) then barsDown[1] else double.nan;
+dCountTot.SetPaintingStrategy(paintingStrategy.VALUES_BELOW);
+dCountTot.SetDefaultColor(color.red);
+ 
+plot uVol = if (displayMode == displayMode.volume and barsDown == 1 and barsUp==0) then upWaveVolume[1] else double.nan;
+uVol.SetPaintingStrategy(paintingStrategy.VALUES_ABOVE);
+uVol.SetDefaultColor(color.dark_green);
+ 
+plot dVol = if (displayMode == displayMode.volume and barsUp == 1 and barsDown==0) then downWaveVolume[1] else double.nan;
+dVol.SetPaintingStrategy(paintingStrategy.VALUES_BELOW);
+dVol.SetDefaultColor(color.red);

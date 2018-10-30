@@ -1,0 +1,32 @@
+#
+# Weis Wave Volume
+#
+ 
+#Note: The Weis Wave indicator shows price waves associated with the Weis Wave Volume lower indicator.
+#Note: The reversalAmount: Indicate the minimum amount price must reverse before an inflection point can be formed. This value should be set the same on the lower Weis Wave Volume indicator.
+ 
+declare lower;
+ 
+input price = hlc3;
+input reversalAmount = 1.0;
+input reversalMode = {default price, percent};
+ 
+def mode = if  reversalMode ==  reversalMode.price then ZigZagTrendSign(price = price, reversalAmount=reversalAmount) else ZigZagTrendPercent(price = price, reversalAmount=reversalAmount);
+def inflection = if reversalMode == reversalMode.price then if !isNan(ZigZagSign(price = price, reversalAmount=reversalAmount)) then 1 else 0 else if !isNan(ZigZagPercent(price = price, reversalAmount=reversalAmount)) then 1 else 0;
+rec trend = if inflection==1 and mode ==-1 then 1 else if inflection==1 and mode==1 then -1 else trend[1];
+ 
+rec upWaveVolume = if inflection==1 and trend==1 and close>open then volume else if inflection==1 and trend==1 and close <= open then 0 else if trend==1 or (inflection==1 and trend ==-1 and close>=open) then upWaveVolume[1]+volume else 0;
+rec downWaveVolume = if inflection==1 and trend ==-1 and close<open then volume else if inflection==1 and trend ==-1 and close>=open then 0 else if trend==-1 or (inflection==1 and trend==1 and close <= open) then downWaveVolume[1]+volume else 0;
+ 
+plot upvol = upWaveVolume;
+upvol.assignValueColor(color.green);
+upvol.setPaintingStrategy(paintingStrategy.HISTOGRAM);
+upvol.setLineWeight(2);
+ 
+plot dnvol = downWaveVolume;
+dnvol.assignValueColor( color.red);
+dnvol.setPaintingStrategy(paintingStrategy.HISTOGRAM);
+dnvol.setLineWeight(2);
+ 
+plot zero = 0;
+zero.setDefaultColor(color.white);
